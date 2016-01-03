@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.portal.persistence.ExamPaperMapper">
+	<select id="getExamPaperList" resultType="com.examstack.common.domain.exam.ExamPaper">
+		select
+		id,name,content,duration,pass_point,total_point,status,summary,is_visible,answer_sheet,group_id,
+		is_subjective,creator,paper_type,field_id from et_exam_paper
+		<if test="searchStr neq ''">
+			where (instr(content,#{searchStr}) &lt;&gt; 0 or instr(name,#{searchStr}) &lt;&gt; 0)
+		</if>
+	</select>
+	
+	<select id="getEnabledExamPaperList" resultType="com.examstack.common.domain.exam.ExamPaper">
+		select
+		id,name,content,duration,pass_point,total_point,status,summary,is_visible,answer_sheet,group_id,
+		is_subjective,creator,paper_type,field_id from et_exam_paper
+		where (creator=#{userName} or is_visible=1) and is_subjective=1
+	</select>
+	
+	<insert id="insertExamPaper" parameterType="com.examstack.common.domain.exam.ExamPaper"
+		useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO
+		et_exam_paper
+		(name,group_id,content,duration,pass_point,summary,total_point,is_subjective,answer_sheet,creator,field_id)
+		values
+		(#{name},#{group_id},#{content},#{duration},#{pass_point},#{summary},#{total_point},#{is_subjective},#{answer_sheet},#{creator},#{field_id});
+	</insert>
+	<select id="getExamPaperById" resultType="com.examstack.common.domain.exam.ExamPaper">
+		select id,name,content,duration,pass_point,total_point,status,summary,is_visible,answer_sheet,group_id from et_exam_paper
+		<where>
+			id = #{examPaperId}
+		</where>
+	</select>
+	
+	<update id="updateExamPaper" parameterType="com.examstack.common.domain.exam.ExamPaper">
+		update et_exam_paper set 
+		<if test="name != null">
+			name = #{name},
+		</if>
+		<if test="duration != 0">
+			duration = #{duration},
+		</if>
+		<if test="paper_type != null and paper_type neq '-1'">
+			paper_type = #{paper_type},
+		</if>
+		<if test="content != null">
+			content=#{content},
+		</if>
+		<if test="total_point != 0">
+			total_point=#{total_point},
+		</if>
+		<if test="status != -1">
+			status=#{status},
+		</if>
+		id=#{id}
+		where id=#{id}
+	</update>
+	
+	<delete id="deleteExamPaper">
+		delete from et_exam_paper where id=#{id} and status=0
+	</delete>
+</mapper>

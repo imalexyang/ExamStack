@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.management.persistence.NewsMapper">
+
+	<select id="getNewsList" resultType="com.examstack.common.domain.news.News">
+		select a.news_id newsId,a.title,content,
+		a.user_id as userId,a.create_time as createTime,b.user_name creator
+		 from et_news a,et_user b where a.user_id=b.user_id
+		order by news_id desc
+	</select>
+	
+	<select id="getNewsById" resultType="com.examstack.common.domain.news.News"
+		parameterType="int">
+		select a.news_id newsId,a.title,content,
+		a.user_id as userId,a.create_time as createTime,b.user_name creator
+		 from et_news a,et_user b where a.user_id=b.user_id and a.news_id=#{newsId}
+	</select>
+	<insert id="addNews" useGeneratedKeys="true" keyProperty="newsId" parameterType="com.examstack.common.domain.news.News">
+		insert into et_news (title,content,user_id)
+		value
+		(#{title},#{content},#{userId})
+	</insert>
+</mapper>

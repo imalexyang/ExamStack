@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.management.persistence.TrainingMapper">
+
+	<select id="getTrainingList" resultType="com.examstack.common.domain.training.Training">
+		select a.training_id trainingId,a.training_name trainingName,a.training_desc trainingDesc,
+		a.create_time createTime,a.creator creatorId,b.user_name creatorName,a.status,a.state_time stateTime,a.exp_time expTime,a.is_private privatee
+		from et_training a,et_user b
+		where a.creator=b.user_id
+		<if test="userId != -1">
+			and a.creator = #{userId}
+		</if>
+		order by a.create_time desc,a.state_time desc
+	</select>
+	
+	<insert id="addTraining" useGeneratedKeys="true" keyProperty="trainingId" parameterType="com.examstack.common.domain.training.Training">
+		insert into et_training(training_name,training_desc,field_id,creator,exp_time,is_private) values
+		(#{trainingName},#{trainingDesc},#{fieldId},#{creatorId},#{expTime},#{privatee})
+	</insert>
+	<insert id="addTrainingSection" useGeneratedKeys="true" keyProperty="sectionId" parameterType="com.examstack.common.domain.training.TrainingSection">
+		insert into et_training_section(section_name,section_desc,training_id,user_id,file_name,file_path,file_md5,file_type)
+		values
+		(#{sectionName},#{sectionDesc},#{trainingId},#{userId},#{fileName},#{filePath},#{fileMd5},#{fileType})
+	</insert>
+	<select id="getTrainingSectionByTrainingId" resultType="com.examstack.common.domain.training.TrainingSection">
+		select section_id sectionId,section_name sectionName,section_desc sectionDesc,training_id trainingId,
+		user_id userId,file_name fileName,file_path filePath,file_md5 fileMd5,file_type fileType from et_training_section
+		where training_id=#{trainingId}
+		<if test="userId != -1">
+			and user_id=#{userId}
+		</if>
+	</select>
+	<select id="getTrainingSectionById" resultType="com.examstack.common.domain.training.TrainingSection">
+		select section_id sectionId,section_name sectionName,section_desc sectionDesc,training_id trainingId,
+		user_id userId,file_name fileName,file_path filePath,file_md5 fileMd5,file_type fileType from et_training_section
+		where section_id=#{sectionId}
+		<if test="userId != -1">
+			and user_id=#{userId}
+		</if>
+	</select>
+	<delete id="deleteTrainingSection">
+		delete from et_training_section where section_id=#{sectionId}
+		<if test="userId != -1">
+			and user_id=#{userId}
+		</if> 
+	</delete>
+	
+	<select id="getTrainingSectionProcessListByTrainingId" resultType="com.examstack.common.domain.training.TrainingSectionProcess">
+		select b.training_name trainingName,a.section_id sectionId,a.section_name sectionName,a.section_desc sectionDesc,b.training_id trainingId,
+		c.user_id userId,a.file_name fileName,a.file_path filePath,a.file_md5 fileMd5,a.file_type fileType,c.user_name userName,
+   		ifnull((select e.process from et_user_training_history e where e.user_id=c.user_id and e.section_id=a.section_id),0) process,m.dep_name
+    	from et_training_section a join et_training b on a.training_id=b.training_id join et_user c LEFT JOIN 
+    	(select  d.user_id,e.dep_id,e.dep_name from et_user_2_department d,et_department e where d.dep_id=e.dep_id) m
+		on c.user_id=m.user_id where a.training_id=#{trainingId}
+		<if test="array != null">
+			and c.user_id in
+			<foreach collection="array" open="(" close=")" separator="," index="index" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="array == null">
+			and 1=2
+		</if>
+		<if test="searchStr != null">
+			and (instr(c.true_name,#{searchStr}) &lt;&gt; 0 or instr(c.user_name,#{searchStr}) &lt;&gt; 0 or instr(c.phone_num,#{searchStr}) &lt;&gt; 0 or instr(c.national_id,#{searchStr}) &lt;&gt; 0 or instr(c.email,#{searchStr}) &lt;&gt;0 or instr(m.dep_name,#{searchStr}) &lt;&gt; 0)
+		</if>
+	</select>
+	
+	<select id="getUserTrainingList" resultType="com.examstack.common.domain.training.UserTraining">
+		select a.training_id trainingId,a.training_name trainingName,a.training_desc trainingDesc,
+		a.create_time createTime,a.creator creatorId,b.user_name creatorName,a.status,a.state_time stateTime,a.exp_time expTime,a.is_private privatee,
+		c.user_id userId,c.user_name userName,c.true_name trueName,c.dep_name depName
+		from et_training a,et_user b,(select p.*,n.dep_name from et_user_2_department m join et_department n on m.dep_id=n.dep_id right join et_user p on m.user_id=p.user_id) c,et_user_2_role d,et_role e
+		where a.creator=b.user_id and c.user_id=d.user_id and d.role_id=e.id and e.authority='ROLE_STUDENT' and a.training_id=#{trainingId}
+		<if test="userId != -1">
+			and a.creator = #{userId}
+		</if>
+		<if test="searchStr != null">
+			and (instr(c.true_name,#{searchStr}) &lt;&gt; 0 or instr(c.user_name,#{searchStr}) &lt;&gt; 0 or instr(c.phone_num,#{searchStr}) &lt;&gt; 0 or instr(c.national_id,#{searchStr}) &lt;&gt; 0 or instr(c.email,#{searchStr}) &lt;&gt;0 or instr(c.dep_name,#{searchStr}) &lt;&gt; 0)
+		</if>
+		order by a.create_time desc,a.state_time desc
+	</select>
+</mapper>

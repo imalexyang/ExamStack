@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.portal.persistence.CommentMapper">
+
+
+	<select id="getCommentByTypeAndReferId" resultType="com.examstack.common.domain.question.Comment">
+		select
+		a.comment_id commentId,a.refer_id referId,a.index_id indexId,
+		a.user_id userId,b.user_name username,a.content_msg
+		contentMsg,a.quoto_id quotoId,
+		a.re_id reId,a.create_time createTime from et_comment a,et_user b
+		where a.user_id=b.user_id
+		and a.refer_id=#{referId} and a.comment_type=#{commentType}
+		<if test="indexId != 0">
+			and a.index_id &lt;= #{indexId}
+		</if>
+		order by a.create_time desc
+	</select>
+	
+	<select id="getMaxCommentIndexByTypeAndReferId" resultType="java.lang.Integer">
+		select max(index_id) from et_comment where refer_id=#{referId}
+		and comment_type=#{commentType}
+	</select>
+	
+	<insert id="addComment" useGeneratedKeys="true"
+		keyProperty="commentId" parameterType="com.examstack.common.domain.question.Comment">
+		insert into et_comment(refer_id,comment_type,index_id,user_id,content_msg,quoto_id,re_id)
+		values(
+		#{referId},#{commentType},#{indexId},#{userId},#{contentMsg},#{quotoId},#{reId}
+		)
+	</insert>
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.portal.persistence.TrainingMapper">
+
+	<select id="getTrainingList" resultType="com.examstack.common.domain.training.Training">
+		select a.training_id trainingId,a.training_name trainingName,a.training_desc trainingDesc,
+		a.create_time createTime,a.creator creatorId,b.user_name creatorName,a.status,a.state_time stateTime,a.exp_time expTime,a.is_private privatee
+		from et_training a,et_user b
+		where a.creator=b.user_id
+		and exists(select 1 from et_training_section c where c.training_id=a.training_id)
+		order by a.create_time desc,a.state_time desc
+	</select>
+	
+	<select id="getTrainingSectionByTrainingId" resultType="com.examstack.common.domain.training.TrainingSection">
+		select section_id sectionId,section_name sectionName,section_desc sectionDesc,training_id trainingId,
+		user_id userId,file_name fileName,file_path filePath,file_md5 fileMd5,file_type fileType from et_training_section
+		where training_id=#{trainingId}
+	</select>
+	<select id="getTrainingSectionById" resultType="com.examstack.common.domain.training.TrainingSection">
+		select a.section_id sectionId,a.section_name sectionName,a.section_desc sectionDesc,a.training_id trainingId,
+		a.user_id userId,a.file_name fileName,a.file_path filePath,a.file_md5 fileMd5,a.file_type fileType,b.training_name trainingName from et_training_section a,et_training b
+		where section_id=#{sectionId} and a.training_id=b.training_id
+	</select>
+	<select id="getTrainingHistBySectionId" resultType="com.examstack.common.domain.training.UserTrainingHistory">
+		select training_id trainingId,section_id sectionId,user_id userId,duration,process,start_time startTime,last_state_time lastStateTime,
+		user_training_detail userTrainingDetail from et_user_training_history where section_id=#{sectionId} and user_id=#{userId}
+	</select>
+	<insert id="setUserTrainingHistory" parameterType="com.examstack.common.domain.training.UserTrainingHistory">
+		replace into et_user_training_history(training_id ,section_id ,user_id ,duration ,process ,start_time,last_state_time ,
+		user_training_detail )values
+		(#{trainingId},#{sectionId},#{userId},#{duration},#{process},#{startTime},#{lastStateTime},#{userTrainingDetail})
+	</insert>
+	
+	<select id="getTrainingSectionProcessListByUserId" resultType="com.examstack.common.domain.training.TrainingSectionProcess">
+		select b.training_name trainingName,a.section_id sectionId,a.section_name sectionName,a.section_desc sectionDesc,b.training_id trainingId,
+		a.user_id userId,a.file_name fileName,a.file_path filePath,a.file_md5 fileMd5,a.file_type fileType,(select c.process from et_user_training_history c
+		where c.user_id=#{userId} and c.section_id=a.section_id) process from et_training_section a,et_training b
+		where a.training_id=b.training_id
+	</select>
+</mapper>

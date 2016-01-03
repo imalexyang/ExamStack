@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.management.persistence.UserMapper">
+
+	<!-- 用户 登录，用户用户登录并获取用户信息 -->
+	<select id="getUserByName" resultType="com.examstack.common.domain.user.User">
+		select a.user_id userId,a.user_name
+		userName,a.`password`,a.true_name trueName,a.national_id nationalId,
+		a.email,a.phone_num phoneNum,a.create_time createTime,a.create_by
+		createBy,
+		a.field_id fieldId,a.last_login_time
+		lastLoginTime,a.company,a.enabled,department,GROUP_CONCAT(c.authority) roles from
+		et_user a,et_user_2_role b,et_role c
+		where a.user_id=b.user_id and b.role_id=c.id and a.user_name=#{username}
+	</select>
+	
+	<select id="getUserByNames" resultType="com.examstack.common.domain.user.User">
+		select a.user_id userId,a.user_name
+		userName,a.`password`,a.true_name trueName,a.national_id nationalId,
+		a.email,a.phone_num phoneNum,a.create_time createTime,a.create_by
+		createBy,
+		a.field_id fieldId,a.last_login_time
+		lastLoginTime,a.company,a.enabled,department from
+		et_user a,et_user_2_role b,et_role c
+		where a.user_id=b.user_id and b.role_id=c.id and (a.user_name in
+		<foreach collection="array" open="(" close=")" index="index" item="item" separator=",">
+			#{item}
+		</foreach>
+		or a.national_id in
+		<foreach collection="array" open="(" close=")" index="index" item="item" separator=",">
+			#{item}
+		</foreach>
+		or a.phone_num in
+		<foreach collection="array" open="(" close=")" index="index" item="item" separator=",">
+			#{item}
+		</foreach>
+		or a.email in
+		<foreach collection="array" open="(" close=")" index="index" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+		<if test="roleId != -1">
+			and c.id = #{roleId}
+		</if>
+	</select>
+	
+	<select id="getUserListByGroupIdList" resultType="com.examstack.common.domain.user.User">
+		select a.user_id userId,a.user_name
+		userName,a.`password`,a.true_name trueName,a.national_id nationalId,
+		a.email,a.phone_num phoneNum,a.create_time createTime,a.create_by
+		createBy,
+		a.field_id fieldId,a.last_login_time
+		lastLoginTime,a.company,a.enabled,department from
+		et_user a,et_user_2_role b,et_role c
+		where a.user_id=b.user_id and b.role_id=c.id and a.user_id in(select user_id from et_user_2_group where group_id in
+		<foreach collection="array" open="(" close=")" index="index" item="item" separator=",">
+			#{item}
+		</foreach>
+		)
+	</select>
+	
+	<select id="getUserListByGroupIdAndParams" resultType="com.examstack.common.domain.user.User">
+		select a.user_id userId,a.user_name
+		userName,a.`password`,a.true_name trueName,a.national_id nationalId,
+		a.email,a.phone_num phoneNum,a.create_time createTime,a.create_by
+		createBy,
+		a.field_id fieldId,a.last_login_time
+		lastLoginTime,a.company,a.enabled,(select dep_id from et_user_2_department p where p.user_id=a.user_id) depId,
+		(select dep_name from et_user_2_department m,et_department n
+		where m.dep_id=n.dep_id and m.user_id=a.user_id) department from
+		et_user a
+		where (a.user_id in(select b.user_id from et_user_2_group b where b.group_id=#{groupId})
+		or #{groupId}=0) and a.user_id in(select m.user_id from et_user_2_role m,et_role n
+		where m.role_id=n.id and n.authority=#{authority})
+		and (instr(a.user_name,#{searchStr}) &lt;&gt; 0 or instr(a.true_name,#{searchStr}) &lt;&gt; 0
+		 or instr(a.national_id,#{searchStr}) &lt;&gt; 0 or instr(a.email,#{searchStr}) &lt;&gt; 0
+		  or instr(a.phone_num,#{searchStr}) &lt;&gt; 0 or instr(a.company,#{searchStr}) &lt;&gt; 0
+		   or instr((select dep_name from et_user_2_department m,et_department n
+		where m.dep_id=n.dep_id and m.user_id=a.user_id),#{searchStr}) &lt;&gt; 0)
+	</select>
+	
+	<!-- User -->
+	<insert id="insertUser" useGeneratedKeys="true" keyProperty="userId"
+		parameterType="com.examstack.common.domain.user.User">
+		insert into
+		et_user(user_name,password,true_name,national_id,email,phone_num,create_time,create_by,field_id,
+		company,department)
+		value
+		(#{userName},#{password},#{trueName},#{nationalId},#{email},#{phoneNum},#{createTime},#{createBy},#{fieldId},#{company},#{department})
+	</insert>
+	<update id="updateUser" parameterType="com.examstack.common.domain.user.User">
+		update et_user
+		<set>
+			<if test="user.userName != null">user_name=#{user.userName},</if>
+			<if test="user.password != null and user.password neq ''">password=#{user.password},</if>
+			<if test="user.trueName != null">true_name=#{user.trueName},</if>
+			<if test="user.nationalId != null">national_id=#{user.nationalId},</if>
+			<if test="user.email != null">email=#{user.email},</if>
+			<if test="user.phoneNum != null">phone_num=#{user.phoneNum},</if>
+			<if test="user.createTime != null">create_time=#{user.createTime},</if>
+			<if test="user.createBy neq 0">create_by=#{user.createBy},</if>
+			<if test="user.fieldId != 0">field_id=#{user.fieldId},</if>
+			<if test="user.company != null">company=#{user.company},</if>
+			<if test="user.department != null">department=#{user.department},</if>
+			user_id=#{user.userId}
+		</set>
+		<where>
+			(user_name = #{user.userName} or user_id=#{user.userId})
+			<if test="oldpassword != null">
+				and password=#{oldpassword}
+			</if>
+		</where>
+	</update>
+	
+	<select id="getUserListByRoleId" resultType="com.examstack.common.domain.user.User">
+		select a.user_id as
+		userId,a.user_name as userName,a.true_name as trueName,
+		a.`password` as
+		`password`,a.email as email,a.phone_num as phoneNum,
+		a.create_time as
+		createTime,
+		(select user_name from et_user
+		m where m.user_id=a.create_by) as creator,(select field_name from et_field where field_id=a.field_id) as fieldName,
+		a.enabled as enabled,company,national_id nationalId,(select dep_id from et_user_2_department p where p.user_id=a.user_id) depId,
+		(select dep_name from et_user_2_department m,et_department n
+		where m.dep_id=n.dep_id and m.user_id=a.user_id) department from et_user
+		a,et_user_2_role b
+		where a.user_id=b.user_id and
+		b.role_id=#{roleId}
+	</select>
+	
+	<insert id="grantUserRole">
+		insert into et_user_2_role(user_id,role_id) value
+		(#{userId},#{roleId})
+	</insert>
+	
+	<!-- group -->
+	<select id="getGroupListByUserId" resultType="com.examstack.common.domain.user.Group">
+		select id groupId,group_name groupName,create_time createTime,is_default defaultt
+		from et_group where user_id=#{userId} order by id desc
+	</select>
+	<insert id="addGroup" parameterType="com.examstack.common.domain.user.Group">
+		insert into et_group(group_name,user_id,is_default) values (#{group.groupName},#{group.userId},#{group.defaultt})
+	</insert>
+	<insert id="updateGroup">
+		update et_group set group_name=#{groupName} where id=#{groupId}
+	</insert>
+	<delete id="deleteGroup">
+		delete from et_group where id=#{group}
+	</delete>
+	<insert id="addUserGroup">
+		replace into et_user_2_group(user_id,group_id) values (#{userId},#{groupId})
+	</insert>
+	<insert id="addUsers2Group">
+		replace into et_user_2_group(user_id,group_id) values 
+		<foreach collection="array" open="" close="" index="index" item="item" separator=",">
+			(#{item},#{groupId})
+		</foreach>
+	</insert>
+	<delete id="deleteUserGroup">
+		delete from et_user_2_group where user_id=#{userId} and group_id in
+		(select b.id from et_group b where b.id=#{groupId} and b.user_id=#{managerId})
+	</delete>
+	<update id="changeUserStatus">
+		update et_user set enabled=#{enabled} where user_id in
+		<foreach collection="array" open="(" close=")" index="index" item="item" separator=",">
+			#{item}
+		</foreach>
+	</update>
+	<!-- Role -->
+	<select id="getRoleList" resultType="com.examstack.common.domain.user.Role">
+		select id roleId,authority,name roleName,code roleCode from et_role
+	</select>
+	
+	<!-- Department -->
+	<select id="getDepList" resultType="com.examstack.common.domain.user.Department">
+		select dep_id depId,dep_name depName,memo from et_department order by dep_id desc
+	</select>
+	<insert id="addDep" useGeneratedKeys="true" keyProperty="depId"
+		parameterType="com.examstack.common.domain.user.Department">
+		insert into et_department(dep_name,memo) values(#{depName},#{memo})
+	</insert>
+	<update id="updateDep" parameterType="com.examstack.common.domain.user.Department">
+		update et_department set dep_name=#{depName},memo=#{memo} where dep_id=#{depId}
+	</update>
+	<select id="deleteDep">
+		delete from et_department where dep_id=#{depId}
+	</select>
+	<insert id="addUser2Dep">
+		insert into et_user_2_department(user_id,dep_id) values (#{userId},#{depId})
+	</insert>
+	<delete id="deleteUser2Dep">
+		delete from et_user_2_department where user_id=#{userId}
+	</delete>
+</mapper>

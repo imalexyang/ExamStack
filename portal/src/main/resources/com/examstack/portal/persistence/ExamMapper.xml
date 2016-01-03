@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.portal.persistence.ExamMapper">
+
+	<select id="getUserExamHistBySeriNo" resultType="com.examstack.common.domain.exam.ExamHistory">
+		select a.id
+		histId,a.user_id userId,b.user_name userName,b.true_name
+		trueName,a.start_time startTime,a.exam_id examId,a.exam_paper_id
+		examPaperId,a.enabled,a.point,a.seri_no seriNo,a.content,
+		a.answer_sheet answerSheet,a.duration,a.point_get
+		pointGet,a.submit_time submitTime,a.approved,a.verify_time verifyTime
+		from et_user_exam_history a,et_user b
+		where a.user_id=b.user_id and
+		a.seri_no=#{seriNo} and a.approved=#{approved}
+		order by a.id desc
+	</select>
+	<select id="getUserExamHistByUserIdAndExamId" resultType="com.examstack.common.domain.exam.ExamHistory">
+		select a.id histId,a.user_id userId,b.user_name userName,b.true_name
+		trueName,a.start_time startTime,a.exam_id examId,a.exam_paper_id
+		examPaperId,a.enabled,a.point,a.seri_no seriNo,a.content,
+		a.answer_sheet answerSheet,a.duration,a.point_get
+		pointGet,a.submit_time submitTime,a.approved,a.verify_time verifyTime
+		from et_user_exam_history a,et_user b
+		where a.user_id=b.user_id and
+		a.user_id=#{userId} and a.exam_id=#{examId}
+		<if test="array != null">
+			and a.approved in
+			<foreach collection="array" open="(" close=")" separator=","
+				index="index" item="item">
+				#{item}
+			</foreach>
+		</if>
+		order by a.id desc
+	</select>
+	<select id="getUserExamHistByUserId" resultType="com.examstack.common.domain.exam.ExamHistory">
+		select a.id histId,a.user_id userId,b.user_name userName,b.true_name
+		trueName,a.start_time startTime,a.exam_id examId,a.exam_paper_id
+		examPaperId,a.enabled,a.point,a.seri_no seriNo,a.content,
+		a.answer_sheet answerSheet,a.duration,a.point_get
+		pointGet,a.submit_time submitTime,a.approved,a.verify_time verifyTime,
+		c.exam_name examName,c.exam_type examType,d.pass_point passPoint
+		from et_user_exam_history a,et_user b,et_exam c,et_exam_paper d
+		where
+		a.user_id=b.user_id and a.user_id=#{userId} and a.exam_id=c.id and c.exam_paper_id=d.id
+		<if test="array != null">
+			and c.exam_type in
+			<foreach collection="array" open="(" close=")" separator=","
+				index="index" item="item">
+				#{item}
+			</foreach>
+		</if>
+		order by a.id desc
+	</select>
+	<select id="getExamById" resultType="com.examstack.common.domain.exam.Exam">
+		select id examId,exam_name
+		examName,exam_subscribe examSubscribe,exam_type examType,start_time
+		effTime,end_time expTime,exam_paper_id examPaperId,creator,creator_id
+		creatorId,approved
+		from et_exam where id=#{examId}
+	</select>
+	<insert id="addUserExamHist" parameterType="com.examstack.common.domain.exam.ExamHistory"
+		useGeneratedKeys="true" keyProperty="histId">
+		insert into
+		et_user_exam_history(user_id,start_time,exam_id,exam_paper_id,enabled,point,seri_no,content,answer_sheet,duration,point_get,submit_time,approved,verify_time)
+		values(#{userId},#{startTime},#{examId},#{examPaperId},#{enabled},#{point},#{seriNo},#{content},#{answerSheet},#{duration},#{pointGet},#{submitTime},#{approved},#{verifyTime})
+	</insert>
+	<select id="getUserExamHistListByHistId" resultType="com.examstack.common.domain.exam.ExamHistory">
+		select a.id
+		histId,a.user_id userId,b.user_name userName,b.true_name
+		trueName,a.start_time startTime,a.exam_id examId,a.exam_paper_id
+		examPaperId,a.enabled,a.point,a.seri_no seriNo,a.content,
+		a.answer_sheet answerSheet,a.duration,a.point_get
+		pointGet,a.submit_time submitTime,a.approved,a.verify_time verifyTime
+		from et_user_exam_history a,et_user b
+		where a.user_id=b.user_id and
+		a.id=#{histId}
+		order by a.start_time desc
+	</select>
+	<select id="getExamListToApply" resultType="com.examstack.common.domain.exam.Exam">
+		select id
+		examId,exam_name examName,exam_subscribe examSubscribe,exam_type
+		examType,start_time effTime,end_time expTime,exam_paper_id
+		examPaperId,creator,creator_id creatorId,approved,(select name from
+		et_exam_paper m where a.exam_paper_id=m.id) examPaperName
+		from et_exam
+		a where a.approved=1 and a.end_time &gt; sysdate() and a.exam_type=2
+		and (not exists(select 1 from et_user_exam_history b where
+		a.id=b.exam_id and b.user_id=#{userId}) or #{userId}=0)
+		order by start_time desc
+	</select>
+	<select id="getExamListToStart" resultType="com.examstack.common.domain.exam.Exam">
+		select a.id
+		examId,a.exam_name examName,a.exam_subscribe examSubscribe,a.exam_type
+		examType,a.start_time effTime,
+		a.end_time expTime,a.exam_paper_id
+		examPaperId,a.creator,a.creator_id creatorId,b.approved,(select name
+		from et_exam_paper m where a.exam_paper_id=m.id) examPaperName,
+		b.seri_no seriNo
+		from et_exam a,et_user_exam_history b where
+		a.approved=1 and a.end_time &gt; sysdate()
+		and a.id=b.exam_id and
+		b.user_id=#{userId}
+		<if test="array != null">
+			and a.exam_type in
+			<foreach collection="array" index="index" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		order by a.start_time desc
+	</select>
+	<select id="getExamList" resultType="com.examstack.common.domain.exam.Exam">
+		select id examId,exam_name examName,exam_subscribe
+		examSubscribe,exam_type examType,start_time effTime,end_time
+		expTime,exam_paper_id examPaperId,creator,creator_id
+		creatorId,approved,(select name from et_exam_paper m where
+		a.exam_paper_id=m.id) examPaperName
+		from et_exam a
+		<if test="array != null">
+			where a.exam_type in
+			<foreach collection="array" item="item" open="(" close=")"
+				separator="," index="index">
+				#{item}
+			</foreach>
+		</if>
+		order by start_time desc
+	</select>
+</mapper>

@@ -1,0 +1,89 @@
+#bk-conent-question-content {
+
+	padding: 20px;
+}
+
+#bk-conent-question-content a:hover {
+	text-decoration: underline;
+}
+
+.form-line {
+	margin: 0 0 10px 100px;
+	line-height: 26px;
+}
+
+.form-line input, .form-line select {
+	margin-right: 10px;
+}
+
+span.form-label {
+	margin-left: -110px;
+	width: 110px;
+	float: left;
+	text-align: right;
+}
+
+.form-message {
+	color: #C00;
+}
+
+.add-question-ta {
+
+	width: 100%;
+	height: 100px;
+}
+
+.form-question-opt-item {
+	margin: 0 10px 10px 0;
+}
+
+.que-opt-no {
+	margin-right: 10px;
+	width: 10px;
+	float: left;
+}
+
+.add-opt-item{
+	display:block;
+	height:38px;
+}
+
+.add-opt-item .add-opt-img{
+	float: left;
+}
+
+.add-opt-item input.form-question-opt-item{
+	float: left;
+}
+
+.form-question-answer-muti input[type=checkbox] {
+	margin-right: 10px;
+}
+
+
+#ques-add-opt{
+ 	color:#47a447;
+ 	cursor:pointer;
+}
+ 
+.ques-remove-opt{
+ 	color:#d2322d;
+ 	cursor:pointer;
+ 	margin-left:5px;
+}
+.df-input-narrow {
+	height: 28px;
+	
+}
+
+.display-opt-img{
+	float:left;
+}
+.muti-opt-item{
+	display:block;
+	margin-bottom: 5px; 
+}
+
+.muti-opt-item input,.muti-opt-item label{
+	float:left;
+}

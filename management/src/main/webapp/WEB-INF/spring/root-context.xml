@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd  
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+	<!-- Root Context: defines shared resources visible to all other web components -->
+
+	<!-- enable cache -->
+	<cache:annotation-driven />
+
+	<!-- enable autowire -->
+	<context:annotation-config />
+
+	<!-- enable transaction demarcation with annotations -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		
+		<!-- <property name="jdbcUrl"
+			value="jdbc:mysql://218.93.12.45:33306/examonline?useUnicode=true&amp;characterEncoding=UTF-8" />
+		<property name="user" value="examonline" />
+		<property name="password" value="examonline" /> -->
+		<property name="jdbcUrl"
+			value="jdbc:mysql://localhost:3306/examstack?useUnicode=true&amp;characterEncoding=UTF-8" />
+		<property name="user" value="root" />
+		<property name="password" value="" />
+ 		
+		
+		<property name="maxPoolSize" value="50"></property>
+		<property name="minPoolSize" value="10"></property>
+		<property name="initialPoolSize" value="10"></property>
+		<property name="maxIdleTime" value="25000"></property>
+		<property name="acquireIncrement" value="1"></property>
+		<property name="acquireRetryAttempts" value="30"></property>
+		<property name="acquireRetryDelay" value="1000"></property>
+		<property name="testConnectionOnCheckin" value="true"></property>
+		<property name="idleConnectionTestPeriod" value="18000"></property>
+		<property name="checkoutTimeout" value="5000"></property>
+		<property name="automaticTestTable" value="t_c3p0"></property>
+	</bean>
+
+	<!-- transaction manager, use JtaTransactionManager for global tx -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- define the SqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.examstack.common.domain" />
+		<property name="plugins">
+			<array>
+				<ref bean="myInterceptor" />
+			</array>
+		</property>
+	</bean>
+	<bean id="myInterceptor" class="com.examstack.common.util.MyInterceptor">
+		<!-- <property name="prop1" value="prop1"/> <property name="prop2" value="prop2"/> -->
+	</bean>
+	<!-- scan for mappers and let them be autowired -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.examstack.management.persistence" />
+	</bean>
+
+	<!-- file upload -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- one of the properties available; the maximum file size in bytes -->
+		<property name="maxUploadSize" value="204800000" />
+	</bean>
+
+
+
+	<!--ehcache -->
+	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"
+		p:cacheManager-ref="ehcacheFactory" />
+
+	<bean id="ehcacheFactory"
+		class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
+		p:configLocation="classpath:ehcache.xml" p:shared="true" />
+
+	<!-- spring cache -->
+	<!-- <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager"> 
+		<property name="caches"> <set> <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" 
+		p:name="default" /> <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" 
+		p:name="wordCache" /> </set> </property> </bean> -->
+
+	<!-- <bean id="Test" class="com.examstack.common.util.EhcacheTest" /> -->
+	
+	<!-- <bean id="UserService" class="com.extr.service.UserService" /> -->
+	<context:component-scan base-package="com.examstack.management">
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+	
+	<beans:import resource="rabbitmq.xml" />
+</beans>

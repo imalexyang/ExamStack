@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	version="3.0">
+	<display-name></display-name>
+	<filter>
+		<filter-name>characterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter>
+		<filter-name>securityFilter</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+		<init-param>
+			<param-name>targetBeanName</param-name>
+			<param-value>springSecurityFilterChain</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>characterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>securityFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>FORWARD</dispatcher>
+		<dispatcher>INCLUDE</dispatcher>
+	</filter-mapping>
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/spring/root-context.xml /WEB-INF/spring/security.xml /WEB-INF/spring/scheduler.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+<!-- 	<listener>
+		<listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
+	</listener> -->
+	<!-- <listener> <listener-class>com.extr.listener.BaseListener</listener-class> 
+		</listener> -->
+	<servlet>
+		<servlet-name>Kaptcha</servlet-name>
+		<servlet-class>com.google.code.kaptcha.servlet.KaptchaServlet</servlet-class>
+
+		<init-param>
+            <description> Border around kaptcha. Legal values are yes or no. </description>
+            <param-name>kaptcha.border</param-name>
+            <param-value>no</param-value>
+        </init-param>
+        <init-param>
+            <description>Color of the border. Legal values are r,g,b (and optional alpha) or white,black,blue. </description>
+            <param-name>kaptcha.border.color</param-name>
+            <param-value>209,209,209</param-value>
+        </init-param>
+        <init-param>
+            <description>Thickness of the border around kaptcha. Legal values are > 0. </description>
+            <param-name>kaptcha.border.thickness</param-name>
+            <param-value>1</param-value>
+        </init-param>
+        <init-param>
+            <description>Width in pixels of the kaptcha image. </description>
+            <param-name>kaptcha.image.width</param-name>
+            <param-value>96</param-value>
+        </init-param>
+        <init-param>
+            <description>Height in pixels of the kaptcha image. </description>
+            <param-name>kaptcha.image.height</param-name>
+            <param-value>25</param-value>
+        </init-param>
+        <init-param>
+            <description>The image producer. </description>
+            <param-name>kaptcha.producer.impl</param-name>
+            <param-value>com.google.code.kaptcha.impl.DefaultKaptcha </param-value>
+        </init-param>
+        <init-param>
+            <description>The text producer. </description>
+            <param-name>kaptcha.textproducer.impl</param-name>
+            <param-value>com.google.code.kaptcha.text.impl.DefaultTextCreator</param-value>
+        </init-param>
+        <init-param>
+            <description>The characters that will create the kaptcha. </description>
+            <param-name>kaptcha.textproducer.char.string</param-name>
+            <param-value>345689ABCEFGHJKLMNPQRSTUVWXY</param-value>
+        </init-param>
+        <init-param>
+            <description>The number of characters to display. </description>
+            <param-name>kaptcha.textproducer.char.length</param-name>
+            <param-value>5</param-value>
+        </init-param>
+        <init-param>
+            <description>A list of comma separated font names.</description>
+            <param-name>kaptcha.textproducer.font.names</param-name>
+            <param-value>Arial, Courier</param-value>
+        </init-param>
+        <init-param>
+            <description>The size of the font to use. </description>
+            <param-name>kaptcha.textproducer.font.size</param-name>
+            <param-value>22</param-value>
+        </init-param>
+        <init-param>
+            <description>The color to use for the font. Legal values are r,g,b. </description>
+            <param-name>kaptcha.textproducer.font.color</param-name>
+            <param-value>0,165,120</param-value>
+        </init-param>
+        <init-param>
+            <description>The noise producer. </description>
+            <param-name>kaptcha.noise.impl</param-name>
+            <param-value>com.google.code.kaptcha.impl.NoNoise </param-value>
+        </init-param>
+        <init-param>
+            <description>The noise color. Legal values are r,g,b. </description>
+            <param-name>kaptcha.noise.color</param-name>
+            <param-value>0,165,120</param-value>
+        </init-param>
+       <init-param>
+            <description>The obscurificator implementation. </description>
+            <param-name>kaptcha.obscurificator.impl</param-name>
+            <param-value>com.google.code.kaptcha.impl.ShadowGimpy</param-value>
+        </init-param>
+        <init-param>
+            <description>The background implementation. </description>
+            <param-name>kaptcha.background.impl</param-name>
+            <param-value>com.google.code.kaptcha.impl.DefaultBackground</param-value>
+        </init-param>
+        <init-param>
+            <description>Start background color. Legal values are r,g,b. </description>
+            <param-name>kaptcha.background.clear.from</param-name>
+            <param-value>255,255,255</param-value>
+        </init-param>
+        <init-param>
+            <description>Ending background color. Legal values are r,g,b. </description>
+            <param-name>kaptcha.background.clear.to</param-name>
+            <param-value>255,255,255</param-value>
+        </init-param>
+        <init-param>
+            <description>The word renderer implementation. </description>
+            <param-name>kaptcha.word.impl</param-name>
+            <param-value>com.google.code.kaptcha.text.impl.DefaultWordRenderer</param-value>
+        </init-param>
+        <init-param>
+            <description>The value for the kaptcha is generated and is put into the HttpSession. This is the key value for that item in the session. </description>
+            <param-name>kaptcha.session.key</param-name>
+            <param-value>KAPTCHA_SESSION_KEY</param-value>
+        </init-param>
+        <init-param>
+            <description>The date the kaptcha is generated is put into the HttpSession. This is the key value for that item in the session. </description>
+            <param-name>kaptcha.session.date</param-name>
+            <param-value>KAPTCHA_SESSION_DATE</param-value>
+        </init-param>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>Kaptcha</servlet-name>
+		<url-pattern>/Kaptcha.jpg</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>appServlet</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/spring/appServlet/servlet-*.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>appServlet</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	<welcome-file-list>
+		<welcome-file></welcome-file>
+	</welcome-file-list>
+	<session-config>
+		<session-timeout>120</session-timeout>
+	</session-config>
+</web-app>

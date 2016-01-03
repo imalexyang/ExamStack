@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.portal.persistence.UserMapper">
+
+	<!-- 用户 登录，用户用户登录并获取用户信息 -->
+	<select id="getUserByName" resultType="com.examstack.common.domain.user.User">
+		select a.user_id userId,a.user_name
+		userName,a.`password`,a.true_name trueName,a.national_id nationalId,
+		a.email,a.phone_num phoneNum,a.create_time createTime,a.create_by
+		createBy,
+		a.field_id fieldId,a.last_login_time
+		lastLoginTime,a.company,a.enabled,department,GROUP_CONCAT(c.authority) roles,
+		a.national_id nationalId,(select d.dep_id from et_user_2_department d where d.user_id=a.user_id) depId from
+		et_user a,et_user_2_role b,et_role c
+		where a.user_id=b.user_id and b.role_id=c.id and a.user_name=#{username}
+		
+	</select>
+	
+		
+	<!-- User -->
+	<insert id="insertUser" useGeneratedKeys="true" keyProperty="userId"
+		parameterType="com.examstack.common.domain.user.User">
+		insert into
+		et_user(user_name,password,true_name,national_id,email,phone_num,create_time,create_by,field_id,
+		company,department)
+		value
+		(#{userName},#{password},#{trueName},#{nationalId},#{email},#{phoneNum},#{createTime},#{createBy},#{fieldId},#{company},#{department})
+	</insert>
+	<update id="updateUser" parameterType="com.examstack.common.domain.user.User">
+		update et_user
+		<set>
+			<if test="user.userName != null">user_name=#{user.userName},</if>
+			<if test="user.password != null and user.password neq ''">password=#{user.password},</if>
+			<if test="user.trueName != null">true_name=#{user.trueName},</if>
+			<if test="user.nationalId != null">national_id=#{user.nationalId},</if>
+			<if test="user.email != null">email=#{user.email},</if>
+			<if test="user.phoneNum != null">phone_num=#{user.phoneNum},</if>
+			<if test="user.createTime != null">create_time=#{user.createTime},</if>
+			<if test="user.createBy != null">create_by=#{user.createBy},</if>
+			<if test="user.fieldId != 0">field_id=#{user.fieldId},</if>
+			<if test="user.company != null">company=#{user.company},</if>
+			<if test="user.department != null">department=#{user.department},</if>
+			<if test="user.userId != 0">user_id=#{user.userId}</if>
+		</set>
+		<where>
+			(user_name = #{user.userName} or user_id=#{user.userId})
+			<if test="oldpassword != null">
+				and password=#{oldpassword}
+			</if>
+		</where>
+	</update>
+	
+		
+	<insert id="grantUserRole">
+		insert into et_user_2_role(user_id,role_id) value
+		(#{userId},#{roleId})
+	</insert>
+	
+	<!-- group -->
+	<select id="getGroupListByUserId" resultType="com.examstack.common.domain.user.Group">
+		select id groupId,group_name groupName,create_time createTime,is_default defaultt
+		from et_group where user_id=#{userId}
+	</select>
+	
+	<insert id="addUserGroup">
+		replace into et_user_2_group(user_id,group_id) values (#{userId},#{groupId})
+	</insert>
+	
+	<delete id="deleteUserGroup">
+		delete from et_user_2_group where user_id=#{userId} and group_id in
+		(select b.id from et_group b where b.id=#{groupId} and b.user_id=#{managerId})
+	</delete>
+	
+	<!-- Role -->
+	<select id="getRoleList" resultType="com.examstack.common.domain.user.Role">
+		select id roleId,authority,name roleName,code roleCode from et_role
+	</select>
+	
+	<!-- Department -->
+	<select id="getDepList" resultType="com.examstack.common.domain.user.Department">
+		select dep_id depId,dep_name depName,memo from et_department
+	</select>
+	
+	<insert id="addUser2Dep">
+		insert into et_user_2_department(user_id,dep_id) values (#{userId},#{depId})
+	</insert>
+	<delete id="deleteUser2Dep">
+		delete from et_user_2_department where user_id=#{userId}
+	</delete>
+</mapper>

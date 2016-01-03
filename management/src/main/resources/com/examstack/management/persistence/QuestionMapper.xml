@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.examstack.management.persistence.QuestionMapper">
+
+	<!-- 试题列表部分 -->
+	<select id="getQuestionList" resultType="com.examstack.common.domain.question.Question">
+		select a.id,a.name,a.content,a.question_type_id,a.creator,a.answer,a.analysis,a.reference referenceName,group_concat(concat(d.field_name,'-',c.point_name)) pointName,
+		e.name
+		questionTypeName, examing_point examingPoint,
+		(select group_concat(m.tag_name,' ') from et_tag m,et_question_2_tag n
+		where m.tag_id=n.tag_id and n.question_id=a.id) tags from et_question
+		a,et_question_2_point
+		b,et_knowledge_point
+		c,et_field d,et_question_type
+		e
+		<where>
+			a.id=b.question_id and b.point_id=c.point_id and
+			c.field_id=d.field_id
+			and a.question_type_id=e.id
+			<if test="filter.fieldId != 0">
+				and c.field_id = #{filter.fieldId}
+			</if>
+			<if test="filter.tag != 0">
+				and a.id in(select question_id from et_question_2_tag
+				where tag_id=#{filter.tag})
+			</if>
+			<if test="filter.knowledge != 0">
+				and c.point_id = #{filter.knowledge}
+			</if>
+			<if test="filter.questionType != 0">
+				and a.question_type_id = #{filter.questionType}
+			</if>
+			<if test="filter.searchParam != '-1'">
+				and instr(a.name,#{filter.searchParam})&lt;&gt;0
+			</if>
+		</where>
+		group by a.id,a.name,a.content,a.question_type_id,a.creator,a.answer,a.analysis,a.reference,a.examing_point,e.`name`,a.examing_point,tags
+		order by a.id desc
+	</select>
+
+	<select id="getAllField" resultType="com.examstack.common.domain.question.Field">
+		select field_id
+		fieldId,field_name fieldName,memo,state,
+		case when exists(select 1 from
+		et_knowledge_point m where m.field_id=a.field_id) then 0
+		else 1 end
+		removeable
+		from et_field a order by field_id desc
+	</select>
+
+	<select id="getKnowledgePointByFieldId" resultType="com.examstack.common.domain.question.KnowledgePoint">
+		select a.point_id pointId,a.point_name pointName,a.field_id
+		fieldId,a.memo,a.state,b.field_name fieldName,
+		case when exists(select
+		1 from et_question_2_point m where m.point_id=a.point_id) then 0
+		else 1
+		end removeable
+		from et_knowledge_point a,et_field b
+		<where>
+			a.field_id=b.field_id
+			<if test="fieldId != 0">
+				and a.field_id = #{fieldId}
+			</if>
+		</where>
+	</select>
+
+	<select id="getQuestionTypeList" resultType="com.examstack.common.domain.question.QuestionType">
+		select
+		id,name,subjective from et_question_type
+	</select>
+	<!-- 试题列表部分 -->
+
+	<select id="getTagByUserId" resultType="com.examstack.common.domain.question.Tag">
+		select tag_id
+		tagId,tag_name tagName,is_private privatee,create_time createTime,
+		creator,memo from et_tag where (creator=#{userId} or is_private=0)
+	</select>
+	<select id="getTags" resultType="com.examstack.common.domain.question.Tag">
+		select tag_id
+		tagId,tag_name
+		tagName,is_private privatee,create_time createTime,
+		creator,memo,(select user_name from et_user where user_id=creator)
+		creatorName from et_tag order by tag_id desc
+	</select>
+	<select id="getQuestionTags" resultType="com.examstack.common.domain.question.Tag">
+		select a.tag_id
+		tagId,a.tag_name
+		tagName,a.is_private privatee,a.create_time createTime,
+		a.creator,a.memo,(select user_name from et_user where user_id=a.creator)
+		creatorName from et_tag a,et_question_2_tag b where a.tag_id=b.tag_id and b.id=#{questionId} order by tag_id desc
+	</select>
+	<insert id="addTag" parameterType="com.examstack.common.domain.question.Tag"
+		useGeneratedKeys="true" keyProperty="tagId">
+		insert into
+		et_tag(tag_name,creator,memo,is_private)
+		values
+		(#{tagName},#{creator},#{memo},#{privatee})
+	</insert>
+
+	<insert id="insertQuestion" parameterType="com.examstack.common.domain.question.Question"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into et_question
+		(name,content,question_type_id,create_time,creator,
+		answer,analysis,reference,examing_point,keyword,points)
+		values
+		(#{name},#{content},#{question_type_id},#{create_time},#{creator},
+		#{answer},#{analysis},#{referenceName},#{examingPoint},#{keyword},#{points})
+	</insert>
+	<update id="updateQuestion">
+		update et_question
+		<set>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="content != null">
+				content = #{content},
+			</if>
+			<if test="question_type_id != 0">
+				question_type_id=#{question_type_id},
+			</if>
+			<if test="answer != null">
+				answer = #{answer},
+			</if>
+			<if test="analysis != null">
+				analysis = #{analysis},
+			</if>
+			<if test="referenceName != null">
+				reference = #{referenceName},
+			</if>
+			<if test="examingPoint != null">
+				examing_point = #{examingPoint},
+			</if>
+			<if test="keyword != null">
+				keyword = #{keyword},
+			</if>
+			id = #{id}
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	<insert id="addQuestionKnowledgePoint">
+		insert into et_question_2_point
+		(question_id,point_id)
+		values
+		(#{questionId},#{pointId})
+	</insert>
+	<insert id="addField" parameterType="com.examstack.common.domain.question.Field"
+		useGeneratedKeys="true" keyProperty="fieldId">
+		insert into
+		et_field(field_name,memo,state) values (
+		#{fieldName},#{memo},#{state}
+		)
+	</insert>
+
+	<insert id="addKnowledgePoint" parameterType="com.examstack.common.domain.question.KnowledgePoint"
+		useGeneratedKeys="true" keyProperty="pointId">
+		insert into
+		et_knowledge_point(point_name,memo,state,field_id) values (
+		#{pointName},#{memo},#{state},#{fieldId}
+		)
+	</insert>
+
+	<select id="getQuestionTagByQuestionIdAndUserId" resultType="com.examstack.common.domain.question.QuestionTag">
+		select tag_id tagId,tag_name tagName,is_private privatee,create_time
+		createTime,
+		creator,memo from et_tag where (creator=#{userId} or
+		is_private=0)
+		and tag_id in(select tag_id from et_question_2_tag where
+		question_id=#{questionId})
+	</select>
+
+	<insert id="addQuestionTag" parameterType="com.examstack.common.domain.question.QuestionTag"
+		useGeneratedKeys="true">
+		replace into et_question_2_tag(question_id,tag_id,creator)
+		values
+		<foreach collection="array" index="index" item="item" open=""
+			close="" separator=",">
+			(#{item.questionId},#{item.tagId},#{item.creator})
+		</foreach>
+
+	</insert>
+
+	<delete id="deleteQuestionTag">
+		delete from et_question_2_tag where
+		<if test="array != null">
+			tag_id not in
+			<foreach collection="array" index="index" item="item" open="("
+				close=")" separator=",">
+				#{item}
+			</foreach>
+			and
+		</if>
+		question_id=#{questionId}
+
+	</delete>
+
+	<delete id="deleteQuestionPointByQuestionId">
+		delete from et_question_2_point where
+		question_id=#{questionId}
+	</delete>
+
+	<delete id="deleteFieldByIdList">
+		delete from et_field where field_id in
+		<foreach collection="array" open="(" close=")" index="index"
+			item="item" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+
+	<delete id="deleteKnowledgePointByIdList">
+		delete from et_knowledge_point where point_id in
+		<foreach collection="array" open="(" close=")" index="index"
+			item="item" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+
+	<delete id="deleteTagByIdList">
+		delete from et_tag where tag_id in
+		<foreach collection="array" open="(" close=")" index="index"
+			item="item" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+
+	<select id="getQuestionByQuestionId" resultType="com.examstack.common.domain.question.Question">
+		select a.id,a.name,a.content,a.question_type_id,a.creator,a.answer,a.analysis,a.reference referenceName,a.keyword keyword,
+		a.examing_point examingPoint from et_question a
+		<where>
+			a.id = #{questionId}
+		</where>
+	</select>
+	
+	<select id="getQuestionByTypeId" resultType="com.examstack.common.domain.question.Question">
+		select * from et_question
+		<where>
+			question_type_id = #{questionTypeId}
+		</where>
+	</select>
+
+	<select id="getQuestionAnalysisListByIdList"
+		resultType="com.examstack.common.domain.question.QuestionQueryResult">
+		SELECT a.id
+		questionId,a.content,a.answer,a.analysis,a.question_type_id
+		questionTypeId,a.reference
+		referenceName,a.examing_point
+		examingPoint,GROUP_CONCAT(d.field_name,'
+		&gt; ',c.point_name,' &gt; ',
+		a.examing_point ,case when a.keyword is
+		null then '' else
+		CONCAT('
+		知识关键点：',a.keyword) end)
+		pointName,GROUP_CONCAT(d.field_name)
+		fieldName
+		from et_question
+		a,et_question_2_point
+		b,et_knowledge_point
+		c,et_field d
+		<where>
+			a.id=b.question_id and
+			b.point_id=c.point_id and
+			c.field_id=d.field_id
+			<if test="array != null">
+				and
+				a.id in
+				<foreach collection="array" open="(" close=")" index="index"
+					item="item" separator=",">
+					#{item}
+				</foreach>
+			</if>
+
+		</where>
+		group by
+		a.id,a.content,a.answer,a.analysis,a.question_type_id,a.reference,
+		a.examing_point
+		order by a.question_type_id,a.id
+	</select>
+	
+	<delete id="deleteQuestionByQuestionId">
+		delete from et_question where id=#{questionId}
+	</delete>
+	
+	<select id="getQuestionListByPointId" resultType="com.examstack.common.domain.question.QuestionStruts">
+		select a.id questionId,a.expose_times exposeTimes, c.point_id
+		pointId,a.difficulty difficulty,a.question_type_id questionTypeId,
+		a.right_times rightTimes, a.wrong_times wrongTimes,a.points
+		point,a.keyword from
+		et_question a,et_question_2_point b
+		,et_knowledge_point c
+		<where>
+			a.id=b.question_id and b.point_id=c.point_id
+			<if test="array != null">
+				and c.point_id in
+				<foreach close=")" separator="," open="(" item="item" index="index"
+					collection="array"> #{item} </foreach>
+			</if>
+		</where>
+	</select>
+	
+	<select id="getTypeQuestionStaticByFieldId" resultType="com.examstack.common.domain.question.QuestionStatistic">
+		select c.field_id fieldId,c.point_id pointId,c.point_name pointName,d.id questionTypeId,d.name questionTypeName,count(1) amount from et_question a,et_question_2_point b,et_knowledge_point c,et_question_type d
+		where a.id=b.question_id and b.point_id=c.point_id and c.field_id=#{fieldId} and a.question_type_id=d.id group by c.field_id,c.point_id,c.point_name,d.id,d.name
+	</select>
+	
+	<select id="getQuestionPoint" resultType="com.examstack.common.domain.question.KnowledgePoint">
+		select a.point_id pointId,a.point_name pointName,a.field_id
+		fieldId,a.memo,a.state,b.field_name fieldName
+		from et_knowledge_point a,et_field b
+		<where>
+			a.field_id=b.field_id
+			and a.point_id in(select m.point_id from et_question_2_point m where m.question_id=#{questionId})
+		</where>
+	</select>
+	
+	<select id="getPointCount" resultType="com.examstack.common.domain.question.PointStatistic">
+		select a.field_id fieldId,a.field_name fieldName,b.point_id pointId,b.point_name pointName,count(1) amount from et_field a,et_knowledge_point b,et_question c,et_question_2_point d
+		where a.field_id=b.field_id and b.field_id=#{fieldId} and c.id=d.question_id and d.point_id=b.point_id group by a.field_id,a.field_name, b.point_id,b.point_name
+	</select>
+</mapper>
