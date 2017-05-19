@@ -31,7 +31,7 @@ var question_import={
 						$('#div-file-list').html('<a class=\'file-name\'>' 
 								+ file.name 
 								+ '</a><input type=\'hidden\' value=\'' 
-								+ file.name + '\' />');
+								+ data + '\' />'); //+ file.name + '\' />');
 			        },
 					onSelectError: function(file,errorCode,errorMsg) {
 						if(errorCode==-110){
