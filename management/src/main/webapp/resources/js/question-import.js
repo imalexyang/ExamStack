@@ -47,7 +47,8 @@ var question_import={
 		},
 		questionDataProcess : function questionDataProcess(){
 			$("#from-question-import").submit(function(){
-				var filePath = $("#div-file-list").find("input").val();
+				//var filePath = $("#div-file-list").find("input").val();
+				var filePath = $("#div-file-list").find("input").val().split('\\').pop();
 				$.ajax({
 					headers : {
 						'Accept' : 'application/json',
