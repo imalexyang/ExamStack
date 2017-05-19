@@ -221,8 +221,9 @@ public class QuestionServiceImpl implements QuestionService {
 	@Override
 	public void uploadQuestions(String filePath, String username, int fieldId) {
 		// TODO Auto-generated method stub
-		String strPath = ",webapps,files,question," + username + ",tmp";
-
+		//String strPath = ",webapps,files,question," + username + ",tmp";
+		String strPath = ",webapps,files,question," + username;
+		
 		filePath = System.getProperty("catalina.base") + strPath.replace(',', File.separatorChar) + File.separatorChar
 				+ filePath;
 		Map<String, KnowledgePoint> pointMap = this.getKnowledgePointMapByFieldId(fieldId, null);
