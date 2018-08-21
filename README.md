@@ -147,3 +147,6 @@
 	> 我们在测试过程中发现，内存不足的情况下（我们使用的是1G内存），RabbitMQ、MySql、ScoreMarker经常被Kill，而且无法启动，查看日志会发现提示内存不够。
 	
 	查看下日志，如果是内存不够的原因，那就赶紧加内存吧。为了保证系统正常运行，内存不能低于2G。
+	
+
+#简单版：请移步至：https://github.com/imalexyang/taxexam
