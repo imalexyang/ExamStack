@@ -29,7 +29,7 @@
 		<repository>
 			<id>spring-milestones</id>
 			<name>Spring Milestones</name>
-			<url>http://repo.spring.io/milestone</url>
+			<url>https://repo.spring.io/milestone</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -39,7 +39,7 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<id>spring-milestones</id>
-			<url>http://repo.spring.io/milestone</url>
+			<url>https://repo.spring.io/milestone</url>
 		</pluginRepository>
 	</pluginRepositories>
 </project>
